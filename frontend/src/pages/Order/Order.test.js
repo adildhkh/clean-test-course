@@ -9,9 +9,9 @@ import OrderContext from '../../context/OrderContext';
 describe('Test Order', () => {
   let orderName;
   let orderItems;
+
   beforeEach(() => {
-    //Arrange:
-    //Setup Order Context
+    // Arrange: Setup Order Context
     orderName = 'test-fun';
     orderItems = [
       { item: 'Test 1', quantity: 1 },
@@ -25,73 +25,62 @@ describe('Test Order', () => {
   });
 
   test('Test Delivery Fee', async () => {
-    //Add a Test to verify that delivery fee shows up here
-    //Act:
-    //Setup the Mock API
+    // Arrange
     setupMock();
-    //Call the page
+
+    // Act
     render(
       <OrderContext.Provider value={{ orderName, orderItems }}>
         <Order />
       </OrderContext.Provider>
     );
-    //Assert: replace the return true.
+
+    // Assert
     await waitFor(() => {
-      return true;
+      expect(screen.getAllByText('$2.50')).toHaveLength(1);
     });
   });
 
   test('Test Update Delivery Fee', async () => {
-    //Modify the delivery distance and verify that the delivery fee is updated
-    //Act:
-    //Setup the Mock API
+    // Arrange
     setupMock();
-    //Call the page
+
+    // Act
     render(
       <OrderContext.Provider value={{ orderName, orderItems }}>
         <Order />
       </OrderContext.Provider>
     );
 
-    //ACT
-    //Update the Delivery distance by choosing the 5 mile option from the drop down
-    userEvent.selectOptions(
-      // Find the select element, like a real user would.
+    // Update the delivery distance to 5 miles
+    await userEvent.selectOptions(
       screen.getByRole('combobox'),
-      // Find and select the 5 mile option, like a real user would.
       screen.getByRole('option', { name: '5 miles' })
     );
-    //Assert: replace the return true.
+
+    // Assert
     await waitFor(() => {
-      return true;
+      expect(screen.getAllByText('$5.00')).toHaveLength(1);
     });
   });
 });
 
+// Mock API setup function
 const setupMock = () => {
-  //Mock API calls
   const mockGet = jest.spyOn(axios, 'get');
   mockGet.mockImplementation((url) => {
     switch (url) {
       case `${API_URL}/api/delivery/test-fun/0`:
         return Promise.resolve({
-          data: {
-            status: 'success',
-            data: 2.5,
-          },
+          data: { status: 'success', data: 2.5 },
         });
       case `${API_URL}/api/delivery/test-fun/5`:
         return Promise.resolve({
-          data: {
-            status: 'success',
-            data: 5.0,
-          },
+          data: { status: 'success', data: 5.0 },
         });
       default:
         return Promise.resolve({
-          data: {
-            status: 'fail',
-          },
+          data: { status: 'fail' },
         });
     }
   });
