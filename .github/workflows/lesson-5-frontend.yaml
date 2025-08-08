@@ -3,32 +3,37 @@ name: Lesson 5 DAST
 on:
   push:
     branches:
-      - lesson-5
-
+      - lesson-5-complete
 jobs:
-  security_test:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
-    steps:
-      - name: OWASP ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.12.0
-        with:
-          target: 'https://hangryhippo.quantic.host'
-          
-          
-  deploy:
-    # needs: [function_test] (normally you'd not deploy until functional tests were complete)
+  function_test:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
-      # - run: npm install && npm run build (commented out to save learner time)
+      - run: npm install
+      - name: Run functional tests
+        run: npm test -- --coverage --watchAll=false
+  deploy:
+    needs: [function_test]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install && npm run build
       - name: Generate deployment package
         run: zip -r deploy.zip build Dockerfile
       - name: '**PLACEHOLDER** Deploy to Elastic Beanstalk'
         run: echo Placeholder for Deployment
+  security_test:
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dynamic Application Security Scan
+        uses: zaproxy/action-baseline@v0.7.0
+        with:
+          target: 'http://hangry-web-dev.us-east-1.elasticbeanstalk.com/'
 
