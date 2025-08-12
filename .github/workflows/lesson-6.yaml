@@ -3,6 +3,7 @@ name: Lesson 6
 on:
   push:
     branches:
+      - lesson-6
       - lesson-6-complete
 
 jobs:
@@ -28,8 +29,8 @@ jobs:
       - run: npm install && npm run build
       - name: Generate deployment package
         run: zip -r deploy.zip build Dockerfile
-      - name: '**PLACEHOLDER** Deploy to Local Dev'
-        run: echo "Skipping Elastic Beanstalk deployment — using local server"
+      - name: '**PLACEHOLDER** Deploy to Elastic Beanstalk'
+        run: echo Placeholder for Deployment
 
   security_test:
     needs: [deploy]
@@ -38,7 +39,7 @@ jobs:
       - name: Dynamic Application Security Scan
         uses: zaproxy/action-baseline@v0.7.0
         with:
-          target: 'http://localhost:3000/'
+          target: 'http://hangry-web-dev.us-east-1.elasticbeanstalk.com/'
 
   acceptance_test:
     needs: [deploy]
