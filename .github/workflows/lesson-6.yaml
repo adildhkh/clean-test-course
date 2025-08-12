@@ -13,27 +13,38 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
-      - run: npm install
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm install
+
       - name: Run functional tests
         run: npm test -- --coverage --watchAll=false
 
   deploy:
-    needs: [function_test]
+    needs: function_test
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
-      - run: npm install && npm run build
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies and build
+        run: |
+          npm install
+          npm run build
+
       - name: Generate deployment package
         run: zip -r deploy.zip build Dockerfile
-      - name: '**PLACEHOLDER** Deploy to Elastic Beanstalk'
-        run: echo Placeholder for Deployment
+
+      - name: Deploy to Elastic Beanstalk (Placeholder)
+        run: echo "Placeholder for Deployment"
 
   security_test:
-    needs: [deploy]
+    needs: deploy
     runs-on: ubuntu-latest
     steps:
       - name: Dynamic Application Security Scan
@@ -42,18 +53,22 @@ jobs:
           target: 'http://hangry-web-dev.us-east-1.elasticbeanstalk.com/'
 
   acceptance_test:
-    needs: [deploy]
+    needs: deploy
     runs-on: ubuntu-latest
     container: cypress/included:10.3.0
     defaults:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
-      - run: cypress run --config-file=cypress.config.js
-      - uses: actions/upload-artifact@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Cypress tests
+        run: cypress run --config-file=cypress.config.js
+
+      - name: Upload Cypress videos
+        uses: actions/upload-artifact@v2
         if: always()
         with:
           name: cypress-videos
           path: frontend/cypress/videos
-
